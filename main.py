@@ -33,6 +33,20 @@ def main() -> int:
             path = os.path.join(out_dir, "entry.txt")
             with open(path, "w", encoding="utf-8") as fh:
                 fh.write(PITCH)
+            # Verify what landed on disk: read it back and confirm the
+            # sealed scorer's gate (UTF-8, 1-200 chars, not only whitespace)
+            # before reporting success, so a silent write failure can
+            # never masquerade as a valid entry.
+            with open(path, "r", encoding="utf-8") as fh:
+                written = fh.read()
+            if written != PITCH:
+                print("error: entry.txt on disk differs from the pitch",
+                      file=sys.stderr)
+                return 1
+            if not 1 <= len(written) <= 200 or not written.strip():
+                print("error: entry.txt fails the 1-200 character gate",
+                      file=sys.stderr)
+                return 1
             break
         except OSError:
             continue
